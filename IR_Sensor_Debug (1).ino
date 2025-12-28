@@ -1,0 +1,53 @@
+// === LCD Libraries and Pins ===
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+// === IR Sensor Pins ===
+const int IR_L = A5;   // Left IR sensor (analog)
+const int IR_R = A2;  // Right IR sensor (analog)
+
+// LCD update interval (300 ms for more responsive value display)
+const unsigned long UPDATE_INTERVAL = 300;
+
+void setup() {
+  lcd.begin(16, 2);       // Initialize 16x2 LCD
+  lcd.print("IR Sensors: L/R");  // Title / description
+  delay(1000);
+  lcd.clear();
+
+  // Initialize sensor pins (INPUT mode works for analog/digital reads)
+  pinMode(IR_L, INPUT);
+  pinMode(IR_R, INPUT_PULLUP);
+}
+
+void loop() {
+  // According to your requirement: left/right sensor analog, middle digital
+  int val_L = digitalRead(IR_L);   // Left: analog value (0–1023)
+  int val_R = digitalRead(IR_R);
+
+  // Non-blocking periodic LCD update (doesn't freeze/lag)
+  static unsigned long lastUpdate = 0;
+  if (millis() - lastUpdate >= UPDATE_INTERVAL) {
+    lastUpdate = millis();
+
+    // First row: Left sensor (analog value) + middle sensor (digital value)
+    lcd.setCursor(0, 0);
+    lcd.print("L:");
+    printPadded(val_L, 4); 
+
+    // Second row: Right sensor (analog value)
+    lcd.setCursor(0, 1);
+    lcd.print("R:");
+    printPadded(val_R, 4);
+    lcd.print("          "); 
+  }
+}
+
+// Helper function: LCD numbers occupy fixed 4 characters (pad with spaces)
+// Avoid leftover characters when number of digits changes
+void printPadded(int num, int width) {
+  if (num < 10) lcd.print("   ");       // 1-digit → pad 3 spaces
+  else if (num < 100) lcd.print("  ");  // 2-digit → pad 2 spaces
+  else if (num < 1000) lcd.print(" ");  // 3-digit → pad 1 space
+  lcd.print(num);
+}
